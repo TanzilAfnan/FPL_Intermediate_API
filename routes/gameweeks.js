@@ -91,27 +91,67 @@ router.get('/current', (req, res, next) => {
         let currentGameWeek = events.find((event) => {
             return event.is_current === true;
         });
+        console.log(currentGameWeek);
 
-        ProcessRequest('fixtures/',  async (err,  events) => {
+        ProcessRequest('fixtures/',  async (err,  fixtures) => {
             if (err) {
                 res.send(err);
                 return;
             }
-            events = JSON.parse(events);
-            let currentGameWeekFixture = events.find((event) => {
-                return event.id == currentGameWeek.id;
+            fixtures = JSON.parse(fixtures);
+
+            let currentGameWeekFixture = await fixtures.filter(fixture => {
+                return fixture.event == currentGameWeek.id
             });
 
-            let team_a = await getTeamNamesFromId(currentGameWeekFixture.team_a);
-            let team_h = await getTeamNamesFromId(currentGameWeekFixture.team_h);
+            // let fixtureWithTeams = [];
+            // await currentGameWeekFixture.forEach(async match=>{
             //
-            // console.log("team_a", team_a);
-            // console.log("team_h", team_h);
-            currentGameWeekFixture.team_a = team_a;
-            currentGameWeekFixture.team_h = team_h;
+            //     let team_a = await getTeamNamesFromId(match.team_a);
+            //     let team_h = await getTeamNamesFromId(match.team_h);
+            //
+            //     match.team_a = {
+            //         "id": match.team_a,
+            //         "name" : team_a
+            //     };
+            //
+            //     match.team_h = {
+            //         "id": match.team_h,
+            //         "name" : team_h
+            //     };
+            //
+            //     console.log("team_a", match.team_a);
+            //     console.log("team_h", match.team_h);
+            //
+            //     fixtureWithTeams.push(match);
+            //
+            //     console.log(fixtureWithTeams);
+            // });
 
-            currentGameWeek.fixture = currentGameWeekFixture;
-            res.send(currentGameWeek);
+            // console.log(currentGameWeekFixture);
+
+            var fixtureWithTeams = await Promise.all( currentGameWeekFixture.map(async match => {
+                let team_a = await getTeamNamesFromId(match.team_a);
+                let team_h = await getTeamNamesFromId(match.team_h);
+
+                match.team_a = {
+                    "id": match.team_a,
+                    "name" : team_a
+                };
+
+                match.team_h = {
+                    "id": match.team_h,
+                    "name" : team_h
+                };
+
+                console.log("team_a", match.team_a);
+                console.log("team_h", match.team_h);
+
+                return match;
+
+            }));
+
+            res.send(fixtureWithTeams);
         });
 
     });
