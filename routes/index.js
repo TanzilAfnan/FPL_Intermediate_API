@@ -4,7 +4,8 @@ const https = require('https');
 const baseURL = "https://fantasy.premierleague.com/drf/";
 
 const ProcessRequest = (urlExt ,cb) => {
-    console.log(urlExt);
+    console.log("****************************");
+    console.log(baseURL + urlExt);
 
     https.get(baseURL + urlExt, (resp) => {
         let data = '';
@@ -35,9 +36,12 @@ router.get('/*', function (req, res, next) {
     if(url === '/') {
         url = '/bootstrap-static';
     }
-
     url = url.substring(1);
     console.log("URL : ", url);
+
+    if(!url.endsWith('/')){
+        url += '/';
+    }
 
     let rest = url.split("/");
     console.log(rest);
