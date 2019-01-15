@@ -80,8 +80,6 @@ router.get('/', (req, res, next) => {
 */
 router.get('/current', (req, res, next) => {
 
-    let currentGameWeek = {};
-
     ProcessRequest('events/',  (err,  events) => {
         if(err){
             res.send(err);
@@ -104,32 +102,6 @@ router.get('/current', (req, res, next) => {
                 return fixture.event == currentGameWeek.id
             });
 
-            // let fixtureWithTeams = [];
-            // await currentGameWeekFixture.forEach(async match=>{
-            //
-            //     let team_a = await getTeamNamesFromId(match.team_a);
-            //     let team_h = await getTeamNamesFromId(match.team_h);
-            //
-            //     match.team_a = {
-            //         "id": match.team_a,
-            //         "name" : team_a
-            //     };
-            //
-            //     match.team_h = {
-            //         "id": match.team_h,
-            //         "name" : team_h
-            //     };
-            //
-            //     console.log("team_a", match.team_a);
-            //     console.log("team_h", match.team_h);
-            //
-            //     fixtureWithTeams.push(match);
-            //
-            //     console.log(fixtureWithTeams);
-            // });
-
-            // console.log(currentGameWeekFixture);
-
             var fixtureWithTeams = await Promise.all( currentGameWeekFixture.map(async match => {
                 let team_a = await getTeamNamesFromId(match.team_a);
                 let team_h = await getTeamNamesFromId(match.team_h);
@@ -151,7 +123,12 @@ router.get('/current', (req, res, next) => {
 
             }));
 
-            res.send(fixtureWithTeams);
+            let current = {
+                "gameweek" : currentGameWeek.id,
+                "fixture" : fixtureWithTeams
+            };
+
+            res.send(current);
         });
 
     });
