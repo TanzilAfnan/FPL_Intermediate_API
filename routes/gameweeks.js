@@ -1,32 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const https = require('https');
-const baseURL = require('../baseURL').baseUrl;
-
-const ProcessRequest = (urlExt, cb) => {
-    console.log("****************************");
-    console.log(baseURL + 'events/');
-
-    https.get(baseURL + urlExt, (resp) => {
-        let data = '';
-
-        // A chunk of data has been recieved.
-        resp.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        // The whole response has been received.
-        resp.on('end', () => {
-            // console.log(JSON.parse(data));
-            // res.send(data);
-            cb(null, data);
-        });
-
-    }).on("error", (err) => {
-        console.log("Error: " + err.message);
-        cb(err);
-    });
-};
+// const https = require('https');
+// const baseURL = require('../baseURL').baseUrl;
+const ProcessRequest = require('./ProcessRequest');
 
 const getgameWeekById = (id, cb) => {
     ProcessRequest('events/' ,(err,  data) => {
@@ -102,6 +78,12 @@ router.get('/current', (req, res, next) => {
                 return fixture.event == currentGameWeek.id
             });
 
+
+            /*
+                promise.all because all the promises need to be completed
+                before the array is assigned in the array.map function assigns the
+                values to the array.
+            */
             var fixtureWithTeams = await Promise.all( currentGameWeekFixture.map(async match => {
                 let team_a = await getTeamNamesFromId(match.team_a);
                 let team_h = await getTeamNamesFromId(match.team_h);
@@ -137,7 +119,7 @@ router.get('/current', (req, res, next) => {
 /*
     get an event with event id
 */
-router.get('/:id', (req, res, next) => {
+router.get('/byid/:id', (req, res, next) => {
     id = req.params.id;
     console.log(" ID : " , id);
     getgameWeekById(id, (err, data) =>{
