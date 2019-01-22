@@ -56,14 +56,20 @@ router.get('/', (req, res, next) => {
 */
 router.get('/current', (req, res, next) => {
 
-    ProcessRequest('events/',  (err,  events) => {
+    console.log();
+
+    ProcessRequest('bootstrap',  (err,  data) => {
         if(err){
             res.send(err);
             return;
         }
-        events = JSON.parse(events);
+
+        data = JSON.parse(data);
+        const currentGameWeekId = data["current-event"];
+        let events = data.events;
+
         let currentGameWeek = events.find((event) => {
-            return event.is_current === true;
+            return event.id === currentGameWeekId;
         });
         console.log(currentGameWeek);
 
