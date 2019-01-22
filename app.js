@@ -9,7 +9,6 @@ const usersRouter = require('./routes/users');
 const gameweeks = require('./routes/gameweeks');
 const fixtures = require('./routes/fixtures');
 
-
 var app = express();
 
 // view engine setup

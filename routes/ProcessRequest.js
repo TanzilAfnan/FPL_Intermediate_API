@@ -5,7 +5,7 @@ const baseURL = require('../baseURL').baseUrl;
 
 const ProcessRequest = (urlExt, cb) => {
     console.log("****************************");
-    console.log(baseURL + 'events/');
+    console.log(baseURL + urlExt);
 
     https.get(baseURL + urlExt, (resp) => {
         let data = '';
