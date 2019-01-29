@@ -2,6 +2,23 @@ const express = require('express');
 const router = express.Router();
 const ProcessRequest = require('./ProcessRequest');
 
+const getTeamNamesFromId = (id) => {
+    return new Promise ((resolve, reject)=> {
+        ProcessRequest('teams/', (err, teams) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            teams = JSON.parse(teams);
+            let foundTeam = teams.find((team) => {
+
+                return team.id == id;
+            });
+            resolve(foundTeam.name);
+        })
+    });
+};
+
 /*
     returns a promise that contains the gameweek with the corresponding
     Fixture and teams for the given game week in the parameter
@@ -9,52 +26,50 @@ const ProcessRequest = require('./ProcessRequest');
 const getFixtureWithTeams = async (gameWeekId) => {
     return new Promise((sol, rej) => {
         ProcessRequest('fixtures/',  async (err,  fixtures) => {
-        if (err) {
-            rej(err);
-            console.log(err);
-            return;
-        }
-        fixtures = JSON.parse(fixtures);
+            if (err) {
+                rej(err);
+                console.log(err);
+                return;
+            }
+            fixtures = JSON.parse(fixtures);
 
-        //Just getting the fixture that matches with the given gameweek Id
-        let thisGameWeekFixture = await fixtures.filter(fixture => {
-            return fixture.event == gameWeekId
+            //Just getting the fixture that matches with the given gameweek Id
+            let thisGameWeekFixture = await fixtures.filter(fixture => {
+                return fixture.event == gameWeekId
+            });
+
+            /*
+                promise.all because all the promises need to be completed
+                before the array is assigned in the array.map function assigns the
+                values to the array.
+            */
+            let fixtureWithTeams = await Promise.all(
+                thisGameWeekFixture.map(async match => {
+                    let team_a = await getTeamNamesFromId(match.team_a);
+                    let team_h = await getTeamNamesFromId(match.team_h);
+
+                    match.team_a = {
+                        "id": match.team_a,
+                        "name" : team_a
+                    };
+
+                    match.team_h = {
+                        "id": match.team_h,
+                        "name" : team_h
+                    };
+
+                    return match;
+                }));
+
+            sol(fixtureWithTeams);
         });
-
-        /*
-            promise.all because all the promises need to be completed
-            before the array is assigned in the array.map function assigns the
-            values to the array.
-        */
-        let fixtureWithTeams = await Promise.all(
-            thisGameWeekFixture.map(async match => {
-            let team_a = await getTeamNamesFromId(match.team_a);
-            let team_h = await getTeamNamesFromId(match.team_h);
-
-            match.team_a = {
-                "id": match.team_a,
-                "name" : team_a
-            };
-
-            match.team_h = {
-                "id": match.team_h,
-                "name" : team_h
-            };
-
-            return match;
-        }));
-
-        sol(fixtureWithTeams);
-    });
     });
 };
 
 /*
  get all the events
  returning an array of events objects
-
  Todo: map the fixture for all the gameweeks
-
 */
 router.get('/', (req, res, next) => {
     ProcessRequest('events/' ,(err,  data) => {
@@ -92,15 +107,15 @@ router.get('/current', (req, res, next) => {
             .then(fixtureWithTeams => {
                 console.log(fixtureWithTeams);
 
-                    let current = {
-                        "gameweek" : currentGameWeek.id,
-                        "fixture" : fixtureWithTeams
-                    };
+                let current = {
+                    "gameweek" : currentGameWeek.id,
+                    "fixture" : fixtureWithTeams
+                };
 
-                    res.send(current);
+                res.send(current);
             })
             .catch(err => {
-               console.log(err);
+                console.log(err);
             });
     });
 });
