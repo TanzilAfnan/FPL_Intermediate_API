@@ -1,19 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const ProcessRequest = require('./ProcessRequest');
+const {fixture} =  require('open-fpl');
 
 const getFixtureById = (id, cb) => {
-    ProcessRequest('fixtures/' ,(err,  data) => {
-        if(err){
+    ProcessRequest('fixtures/')
+        .then(data =>{
+            data = JSON.parse(data);
+            let foundFixture = data.find((fixture) => {
+                return fixture.id == id;
+            });
+            cb( null, foundFixture);
+        })
+        .catch(err=> {
             cb(err);
-            return;
-        }
-        data = JSON.parse(data);
-        let foundFixture = data.find((fixture) => {
-            return fixture.id == id;
         });
-        cb( null, foundFixture);
-    });
+
+
+    // ProcessRequest('fixtures/' ,(err,  data) => {
+    //     if(err){
+    //         cb(err);
+    //         return;
+    //     }
+    //     data = JSON.parse(data);
+    //     let foundFixture = data.find((fixture) => {
+    //         return fixture.id == id;
+    //     });
+    //     cb( null, foundFixture);
+    // });
 };
 
 /*
@@ -21,21 +35,21 @@ const getFixtureById = (id, cb) => {
  returning an array of events objects
 */
 router.get('/', (req, res, next) => {
-    ProcessRequest('fixtures/' ,(err,  data) => {
-        if(err){
-            console.log(err);
+
+    ProcessRequest('fixtures/')
+        .then(data=>{
+            res.send(data);
+        })
+        .catch(err=>{
             res.send(err);
-            return;
-        }
-        res.send(data);
-    });
+        });
 });
 
 
 /*
     get fixture by id
 */
-router.get('/byid/:id', (req, res, next) => {
+router.get('/:id', (req, res, next) => {
     id = req.params.id;
 
     getFixtureById(id, (err, data)=> {

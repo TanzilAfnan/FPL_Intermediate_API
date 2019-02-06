@@ -12,7 +12,6 @@ const teams = require('./routes/teams');
 const players = require('./routes/players');
 const matches = require('./routes/matches');
 
-
 var app = express();
 
 // view engine setup
