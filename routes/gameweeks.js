@@ -16,7 +16,6 @@ const getTeamNamesFromId = (id) => {
         catch(err){
             reject(err);
         }
-
     });
 };
 
@@ -108,36 +107,47 @@ router.get('/', async (req, res, next) => {
 */
 router.get('/current', async (req, res, next) => {
 
-    try{
-        let data = await ProcessRequest('bootstrap')
+    gameweek.GetCurrentGameWeek((err, data) => {
+        if(err){
+            console.log(err);
+            res.send(err);
+            return;
+        }
+        console.log(data);
+        res.send(data);
+    });
 
-        data = JSON.parse(data);
-        const currentGameWeekId = data["current-event"];
-        let events = data.events;
 
-        let currentGameWeek = events.find((event) => {
-            return event.id === currentGameWeekId;
-        });
-
-        getFixtureWithTeams(currentGameWeek.id)
-            .then(fixtureWithTeams => {
-                console.log(fixtureWithTeams);
-
-                let current = {
-                    "gameweek" : currentGameWeek.id,
-                    "fixture" : fixtureWithTeams
-                };
-
-                res.send(current);
-            })
-            .catch(err => {
-                console.log(err);
-                res.send(err)
-            });
-    }
-    catch(err){
-        res.send(err)
-    }
+    // try{
+    //     let data = await ProcessRequest('bootstrap')
+    //
+    //     data = JSON.parse(data);
+    //     const currentGameWeekId = data["current-event"];
+    //     let events = data.events;
+    //
+    //     let currentGameWeek = events.find((event) => {
+    //         return event.id === currentGameWeekId;
+    //     });
+    //
+    //     getFixtureWithTeams(currentGameWeek.id)
+    //         .then(fixtureWithTeams => {
+    //             console.log(fixtureWithTeams);
+    //
+    //             let current = {
+    //                 "gameweek" : currentGameWeek.id,
+    //                 "fixture" : fixtureWithTeams
+    //             };
+    //
+    //             res.send(current);
+    //         })
+    //         .catch(err => {
+    //             console.log(err);
+    //             res.send(err)
+    //         });
+    // }
+    // catch(err){
+    //     res.send(err)
+    // }
 });
 
 /*
